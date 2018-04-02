@@ -1,89 +1,77 @@
-/* ==========================================================================
-   Copyright 2012 syssgx (http://github.com/syssgx)
- 
-   Code licensed under CC BY 3.0 licence
-   http://creativecommons.org/licenses/by/3.0/
-   ========================================================================== */
- 
-$(document).ready(function() {
-	"use strict";
-	
-	var xmlData = 0, schemaData = 0,
-		xmlFileName, schemaFileName;
-	
-	function handleFile(e) {
-		
-		var fileObject = e.originalEvent.dataTransfer,
-			files = fileObject.files,
-		    outputdiv, filestring;
-			
-		outputdiv = "#" + $(this).attr("id");
-		
-		ignoreDrag(e);
-		
-		for (var i = 0; i<files.length; i++) {
-			var f = files[i];
-			var filereader = new FileReader();
+
+window.onload = function() {
+    var fileInput = document.getElementById('fileInput');
+    var fileStatus = document.getElementById('fileStatus');
+    var form = document.getElementById('form');
+    var output = document.getElementById('output');
+    var xsdWarn = document.getElementById('xsd-warn');
+
+	var xmlData = 0, schemaData = xsd, xmlFileName;
+
+	function toggleDiv(id) {
+    	var div = document.getElementById(id);
+    	div.style.display = div.style.display == "none" ? "block" : "none";
+	}
+
+    fileInput.addEventListener('change', function(e) {
+    	var f = fileInput.files[0];
+
+		var filereader = new FileReader();
 
 			filestring = "<strong>" + escape(f.name) + 
 							"</strong> (" + (f.type || "n/a") + "): " + f.size + " bytes - " + 
 							"<strong>last modified:</strong> " + (f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : "n/a");
+			
 			filereader.readAsText(f);
 			filereader.onload = (function(theFile) {
 				return function(e) {
-					if (outputdiv.substr(1,3) === "xml") {
-						xmlData = e.target.result;
-						xmlFileName = f.name;
-					} else {
-						schemaData = e.target.result;
-						schemaFileName = f.name;
-					}
+					xmlData = e.target.result;
+					xmlFileName = f.name;
 				};
 			})(f);
-		}
 
-		$(outputdiv).html(filestring).css("background", "#B9B9F4").css("border", "2px solid #2222D3");
-	}
-	
-	function ignoreDrag(e) {
-		e.originalEvent.stopPropagation();
-		e.originalEvent.preventDefault();
-	}
-	
-	$('#xml_file').bind('dragenter', ignoreDrag).bind('dragover', ignoreDrag).bind('drop', handleFile);
-	$('#schema_file').bind('dragenter', ignoreDrag).bind('dragover', ignoreDrag).bind('drop', handleFile);	
+			fileStatus.innerHTML = filestring;
+			toggleDiv('fileStatus');
+    });
 
-	$('#form').submit(function(event){
-		$('#result').text("Processing.. Depending on xml size, it might take a while. Page will not be responsive during the process");
+	// load schema or fallback to use lcoal schema
+    try {
+    	fetch('https://admarkt.marktplaats.nl/api/sellside/feed/xsd')
+		.then(function(data) { 
+			schemaData = data;
+			output.innerHTML = "loaded XSD schema";
+		})
+		.catch(function(err) { 
+			xsdWarn.innerHTML = "<aside class='warning'>failed to load recent XSD from server, using default</aside>";
+		})
+	} catch(err) {
+		console.log(err);
+	}
+
+	var process = function() {
 		var Module = {
 			xml: xmlData,
 			schema: schemaData,
 		};
 		var result = xmllint.validateXML(Module).errors;
-		console.log(result);
-		$('#result').text(result);
-		event.preventDefault();
-	});
 
-	try {
-	// load schema
-		$.ajax({
-			url: "https://admarkt.marktplaats.nl/api/sellside/feed/xsd",
-			contentType: 'text/plain',
-			xhrFields: {
-	    		withCredentials: false
-	  		},
-		})
-		.done(function(data) { 
-			schemaData = data;
-			$('#result').html("loaded XSD schema");
-		})
-		.failed(function(xhr, msg, err) { 
-			$('#result').html("failed to load XSD schema");
-			console.log(msg, err);
-		})
-	} catch(err) {
-		schemaData = xsdFallback;
-		console.log(err);
+		var output = '';
+		// replace output file name
+		for (var i in result) {
+		    output += result[i].replace(/^file_0\.xml/, xmlFileName) + "\n";
+        }
+        return output;
 	}
-});
+
+	form.onsubmit = function (e) {
+		output.innerHTML = "<aside class='normal'>Processing.. Depending on xml size, it might take a while. Page will not be responsive during the process</aside>";
+
+		setTimeout(function() {
+			var result = process();
+			output.innerHTML = "<pre>" + result + "</pre>";
+		}, 100);
+		
+		e.preventDefault();
+		
+	}
+}
