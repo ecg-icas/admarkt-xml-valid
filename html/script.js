@@ -36,13 +36,19 @@ window.onload = function() {
 
 	// load schema or fallback to use lcoal schema
     try {
-    	fetch('https://admarkt.marktplaats.nl/api/sellside/feed/xsd')
-		.then(function(data) { 
-			schemaData = data;
-			output.innerHTML = "loaded XSD schema";
+    	fetch('https://admarkt.marktplaats.nl/api/sellside/feed/xsd', {
+    		 mode: 'no-cors'
+    	})
+		.then(function(data) {
+			console.log("loaded XML schema from admarkt") ;
+			if (data !== null && data.body !== null) {
+				schemaData = data;
+			} else {
+				//xsdWarn.innerHTML = "<aside class='warning'>failed to load recent XSD from server, using default</aside>";
+			}
 		})
 		.catch(function(err) { 
-			xsdWarn.innerHTML = "<aside class='warning'>failed to load recent XSD from server, using default</aside>";
+			//xsdWarn.innerHTML = "<aside class='warning'>failed to load recent XSD from server, using default</aside>";
 		})
 	} catch(err) {
 		console.log(err);
