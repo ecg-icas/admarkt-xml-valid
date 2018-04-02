@@ -1,0 +1,3 @@
+[submodule "xml.js/libxml2"]
+	path = xml.js/libxml2
+	url = git://git.gnome.org/libxml2

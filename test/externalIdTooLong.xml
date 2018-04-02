@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ads xmlns="http://admarkt.marktplaats.nl/schemas/1.0">
+    <ad>
+        <adId>7</adId>
+        <userId>6</userId>
+        <sellerName>MI6</sellerName>
+        <externalId>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</externalId>
+        <title>Agent</title>
+        <description>Shaken</description>
+        <categoryId>42</categoryId>
+        <url>http://localhost/</url>
+        <vanityUrl>Click here!</vanityUrl>
+        <price>1000000</price>
+        <priceType>BIDDING</priceType>
+        <ip>127.0.0.1</ip>
+        <phoneNumber>+44</phoneNumber>
+        <emailAdvertiser>true</emailAdvertiser>
+        <media>
+            <image url="http://localhost/james.jpeg"/>
+        </media>
+        <budget>
+            <cpc>9999</cpc>
+            <totalBudget>99</totalBudget>
+            <dailyBudget>999</dailyBudget>
+        </budget>
+        <regionId>1700274</regionId>
+        <attributes>
+            <attribute>
+                <attributeName>Colleages</attributeName>
+                <attributeValue>M</attributeValue>
+                <attributeValue>Q</attributeValue>
+            </attribute>
+            <attribute>
+                <attributeName>Car</attributeName>
+                <attributeValue>DB5</attributeValue>
+            </attribute>
+        </attributes>
+        <status>PAUSED</status>
+    </ad>
+</ads>

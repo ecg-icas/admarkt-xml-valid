@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:tns="http://admarkt.marktplaats.nl/schemas/1.0"
+    targetNamespace="http://admarkt.marktplaats.nl/schemas/1.0"
+    elementFormDefault="qualified">
+
+    <xs:annotation>
+        <xs:documentation xml:lang="en">
+            <![CDATA[
+            XML schema for AdMarkt / TopAnnoncer. This is the very XSD we use to validate incoming XML feeds.
+            This is the reason you will see some fields marked as 'internal'. If these are supplied, the values
+            are ignored and overwritten internally (think of modifiedDate, etc).
+            ]]>
+        </xs:documentation>
+    </xs:annotation>
+
+    <xs:simpleType name="adPriceType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                <![CDATA[
+                Ad price type (one of the following):
+                FIXED_PRICE
+                BIDDING
+                NEGOTIABLE
+                NOT_APPLICABLE
+                CREDIBLE_BID
+                SWAP
+                FREE
+                RESERVED
+                SEE_DESCRIPTION
+                ON_DEMAND
+                BIDDING_FROM
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="FIXED_PRICE"/>
+            <xs:enumeration value="BIDDING"/>
+            <xs:enumeration value="NEGOTIABLE"/>
+            <xs:enumeration value="NOT_APPLICABLE"/>
+            <xs:enumeration value="CREDIBLE_BID"/>
+            <xs:enumeration value="SWAP"/>
+            <xs:enumeration value="FREE"/>
+            <xs:enumeration value="RESERVED"/>
+            <xs:enumeration value="SEE_DESCRIPTION"/>
+            <xs:enumeration value="ON_DEMAND"/>
+            <xs:enumeration value="BIDDING_FROM"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="attributeType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                <![CDATA[
+                User defined attribute (category-dependent).
+
+                Attributes consist of 4 parts:
+                Name             | Description                              | Required
+                --------------------------------------------------------------
+                attributeName    | key of the attribute                     | YES
+                attributeValue   | value of the attribute                   | YES
+                attributeLabel   | display label of the attribute           | No
+                attributeLocale  | locale (language) of the value and label | No
+
+                In case the attributeLabel and attributeLocale are not provided, we try to match
+                the provided attribute by attributeName / attributeValue to the predefined attributes
+                in the category, and look up the attributeLabel / attributeLocale this way.
+
+                As an example, say you have an attribute with key 'color' and value 'red',
+                to be placed on the Dutch site.
+
+                This makes for the following attribute:
+
+                attributeLocale : 'nl'     -> dutch locale
+                attributeName   : 'color'  -> international key of the attribute
+                attributeLabel  : 'Kleur'  -> dutch label (translation of color)
+                attributeValue  : 'Rood'   -> dutch value
+
+                this approach allows the same attribute to be placed for multiple languages, in case the
+                site you're placing on is multilingual. For instance, the English attribute for the same
+                example will then be:
+
+                attributeLocale : 'en'     -> english locale
+                attributeName   : 'color'  -> international key of the attribute
+                attributeLabel  : 'Color'  -> english label
+                attributeValue  : 'Red'    -> english value
+
+                and the French:
+
+                attributeLocale : 'fr'      -> french locale
+                attributeName   : 'color'   -> international key of the attribute
+                attributeLabel  : 'Couleur' -> french label
+                attributeValue  : 'Rouge'   -> french value
+
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="attributeName" type="xs:string" />
+            <xs:element name="attributeLabel" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="attributeLocale" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="attributeValue" type="xs:string" minOccurs="1" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="attributesType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                <![CDATA[
+                Collection of ad attributes (category-dependent). Note that categories can have mandatory
+                attributes, for which a default value will be filled in if not supplied.
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="attribute" type="tns:attributeType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="mediaType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+            <![CDATA[
+                Media type:                     <xs:complexType>
+                    <xs:attribute name="url" use="required" type="xs:string"/>
+                </xs:complexType>
+
+                Expected to contain from 0 to N <image> elements, depending on the category.
+                <image> elements contain a url attribute.Url should be a full url pointing to an image
+                on a publicly available webserver. Image should not exceed the 4MB limit.
+                Allowed formats: JPG, PNG, BMP. Please note to at this point GIF is _not_ allowed.
+                All images will be resized if necessary to a maximum 1024px high and 1024px wide (maintaining
+                aspect ratio)
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="image" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:attribute name="url" use="required" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="budgetType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+            <![CDATA[
+                Budget details:
+
+                Name          | Description                             | Required
+                ---------------------------------------------------------------
+                cpc           | CPC for the given ad in cents           | YES
+                totalBudget   | total budget for the given ad in cents  | No
+                dailyBudget   | daily budget for the given ad in cents  | No
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+            <xs:all>
+	            <xs:element name="cpc" type="xs:string" nillable="true" minOccurs="1" maxOccurs="1"/>
+	            <xs:element name="totalBudget" type="xs:string" nillable="true" minOccurs="0" maxOccurs="1"/>
+	            <xs:element name="dailyBudget" type="xs:string" nillable="true" minOccurs="0" maxOccurs="1"/>
+            </xs:all>
+    </xs:complexType>
+
+    <xs:simpleType name="statusType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                <![CDATA[
+
+                Ad status (one of the following):
+
+                Name | Description
+                --------------------------------
+                ACTIVE | The ad is active, it can be found on the website
+                PAUSED | The ad is paused, it cannot be found on the website
+
+                The provided (desired) status may not be the resulting status, depending on various other rules.
+                For instance, budget may have ran out, or the seller has too many active ads already in
+                the category.
+
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ACTIVE"/>
+            <xs:enumeration value="PAUSED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="adType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+            <![CDATA[
+                Ad entity:
+
+                Name            | Description                                    | Required
+                --------------- -------------------------------------------------------------------------------
+                adId            | internal ad ID                                 | No, for internal use
+                userId          | internal user ID                               | No, for internal use
+                sellerName      | seller name                                    | No
+                categoryId      | category ID                                    | YES
+                title           | product title                                  | YES
+                description     | product description                            | YES
+                url             | product URL                                    | No
+                vanityUrl       | displayed URL                                  | No
+                createDate      | internal ad creation date                      | No, for internal use
+                modifiedDate    | internal ad modification date                  | No, for internal use
+                price           | ad price in cents if applicable                | Yes for FIXED_PRICE and BIDDING_FROM, No otherwise
+                originalPrice   | original price before discount                 | No, ignored if seller does not have discount option enabled
+                priceType       | ad price type (see description)                | No
+                ip              | IP from where the ad was created               | No, for internal use
+                media           | media block (see description)                  | No
+                attributes      | attributes block (see description)             | No
+                budgetDetails   | budget details block (see description)         | No
+                shippingOptions | shipping options (see description)             | No
+                phoneNumber     | phone number                                   | No
+                emailAdvertiser | allow emails to be sent to the seller          | No, default false
+                regionId        | ID of the region                               | No (only applicable for Kijiji Canada). 0 is allowed.
+                status          | desired status of the ad (see description)     | No, default is ACTIVE
+                externalId      | external ad ID                                 | DEPRECATED. Use vendorId instead.
+                vendorId        | external ad ID                                 | YES, must be unique per ads in the file. If present, overrules externalId.
+                engines         | targeted search engines for this ad            | No
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="adId" type="xs:positiveInteger" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="userId" type="xs:positiveInteger" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="sellerName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="categoryId" type="xs:positiveInteger"/>
+            <xs:element name="title" type="xs:string" />
+            <xs:element name="description" type="xs:string" />
+            <xs:element name="url" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="vanityUrl" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="createDate" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="modifiedDate" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="price" type="xs:integer" nillable="true" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="originalPrice" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="priceType" type="tns:adPriceType" nillable="false"/>
+            <xs:element name="ip" type="xs:string" nillable="false" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="media" type="tns:mediaType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="attributes" type="tns:attributesType" minOccurs="0"/>
+            <xs:element name="budget" type="tns:budgetType" minOccurs="0"/>
+            <xs:element name="shippingOptions" type="tns:shippingOptionsType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="phoneNumber" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="emailAdvertiser" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="buyItNowEnabled" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="paypalEmail" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="regionId" type="xs:nonNegativeInteger" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="status" type="tns:statusType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="externalId" type="tns:externalIdType" minOccurs="0" maxOccurs="1"/> <!-- DEPRECATED, use vendorId instead -->
+            <xs:element name="vendorId" type="tns:vendorIdType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="engines" type="tns:enginesType" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="adsType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+            <![CDATA[
+                Ads:
+
+                Represents a list of ads
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="ad" type="tns:adType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="ads" type="tns:adsType" >
+        <xs:unique name="vendorIdUniqueOverAllAds">
+            <xs:selector xpath="tns:ad/tns:vendorId"/>
+            <xs:field xpath="."/>
+        </xs:unique>
+        <xs:unique name="externalIdUniqueOverAllAds">
+            <xs:selector xpath="tns:ad/tns:externalId"/>
+            <xs:field xpath="."/>
+        </xs:unique>
+    </xs:element>
+
+
+    <xs:simpleType name="vendorIdType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                <![CDATA[
+                VendorId: unique string max 64 chars. Will replace externalId.
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="64"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="externalIdType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                <![CDATA[
+                ExternalId: unique string max 64 chars. Will be replaced by vendorId.
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="64"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+
+    <xs:complexType name="shippingOptionType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                <![CDATA[
+                Information about shipping/pickup.
+                For shippingType 'SHIP' provide 'cost' in cents and 'time' in days. 'location' is ignored.
+                For shippingType 'PICKUP' provide 'location'. Both 'cost' and 'time' are ignored.
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="shippingType">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="PICKUP"/>
+                        <xs:enumeration value="SHIP"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="cost" type="xs:nonNegativeInteger" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="time" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="location" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="shippingOptionsType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                <![CDATA[
+                Collection of shippingOption elements
+                ]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="shippingOption" type="tns:shippingOptionType" minOccurs="0" maxOccurs="2"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="engineType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="classic"/>
+            <xs:enumeration value="auctions"/>
+            <xs:enumeration value="promotions"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="enginesType">
+        <xs:sequence>
+            <xs:element name="engine" type="tns:engineType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>
