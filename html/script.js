@@ -39,10 +39,10 @@ window.onload = function() {
     	fetch('https://admarkt.marktplaats.nl/api/sellside/feed/xsd', {
     		 mode: 'no-cors'
     	})
-		.then(function(data) {
+		.then(function(resp) {
 			console.log("loaded XML schema from admarkt") ;
-			if (data !== null && data.body !== null) {
-				schemaData = data;
+			if (resp.ok && resp.body != null) {
+				schemaData = resp.body;
 			} else {
 				//xsdWarn.innerHTML = "<aside class='warning'>failed to load recent XSD from server, using default</aside>";
 			}
