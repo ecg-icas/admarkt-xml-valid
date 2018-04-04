@@ -94,6 +94,11 @@ h3 {
 
 .content {
     padding: 2em 1em 0;
+    line-height: 1.6;
+}
+
+.content p {
+  font-size: 1.125em;
 }
 
 aside {
@@ -161,11 +166,23 @@ aside {
         <div id="xsd-warn"></div>
         <div id="output"></div>
 
-      </div>
-    </div>
+        <div>
+          <hr/>
+          <h2>How does the wool works?</h2>
+          <p>
+            Internally the tool uses <i>xmllint</i> to validate againts Admarkt XSD schema. It is a destop application that has been converterd to be able to run on modern browser.
+            Because it is not optimized to run in the browser, depending on your XML file it may take some time to run it. Some browser will ask you to stop or wait for it to finish.
+            Press Wait. <b>For 41MB it took about ~2 minutes to complete</b>
+          </p>
+          <img src="image1.png">
 
-    <script src="xmllint.js"></script>
-    <script src="admarkt-xsd-fallback.js"></script>
-    <script src="script.js"></script>
+          
+        </div>
+    </div>
+  </div>
+
+  <script src="xmllint.js"></script>
+  <script src="admarkt-xsd-fallback.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
